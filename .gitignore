@@ -1,0 +1,28 @@
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+data/processed/
+data/qdrant/
+.idea/
+.vscode/
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Environment
+.env
+
+# Runtime data
+data/processed/
+data/qdrant/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+data/2025_AnnualReport.pdf

@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+pytest
+httpx
+pymupdf
+openai
+qdrant-client
+langgraph
+langsmith
+psycopg[binary]>=3.2,<4

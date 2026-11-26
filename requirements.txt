@@ -10,3 +10,4 @@ qdrant-client
 langgraph
 langsmith
 psycopg[binary]>=3.2,<4
+cohere

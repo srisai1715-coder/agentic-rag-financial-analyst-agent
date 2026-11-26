@@ -19,10 +19,21 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1800"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "250"))
 
+# Groq LLM configuration
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_API_BASE_URL = os.getenv("GROQ_API_BASE_URL", "https://api.groq.com/openai/v1")
+GROQ_LLM_MODEL = os.getenv("GROQ_LLM_MODEL", "openai/gpt-oss-120b")
+
+# Cohere Embeddings configuration
+COHERE_API_KEY = os.getenv("COHERE_API_KEY", "")
+COHERE_EMBEDDING_MODEL = os.getenv("COHERE_EMBEDDING_MODEL", "embed-v5.0-fast")
+
+# Keep these optional variables only if another script or test still references them
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
 NVIDIA_API_BASE_URL = os.getenv("NVIDIA_API_BASE_URL", "https://integrate.api.nvidia.com/v1")
-NVIDIA_EMBEDDING_MODEL = os.getenv("NVIDIA_EMBEDDING_MODEL", "nvidia/nemotron-3-embed-1b")
-NVIDIA_LLM_MODEL = os.getenv("NVIDIA_LLM_MODEL", "nvidia/nemotron-3-super-120b-a12b")
+EMBEDDING_API_KEY = os.getenv("EMBEDDING_API_KEY", COHERE_API_KEY)
+EMBEDDING_API_BASE_URL = os.getenv("EMBEDDING_API_BASE_URL", "")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", COHERE_EMBEDDING_MODEL)
 
 QDRANT_PATH = os.getenv("QDRANT_PATH", str(LOCAL_QDRANT_PATH))
 QDRANT_URL = os.getenv("QDRANT_URL", "")

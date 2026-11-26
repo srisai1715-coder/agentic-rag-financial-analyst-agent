@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-const API_URL = "http://localhost:8000";
+const rawApiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_URL = rawApiUrl.replace(/\/+$/, "");
 
 const examples = [
   "What was Microsoft's revenue growth from fiscal year 2024 to 2025?",

@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from app.config import NVIDIA_API_BASE_URL, NVIDIA_API_KEY, NVIDIA_LLM_MODEL
+from app.config import GROQ_API_BASE_URL, GROQ_API_KEY, GROQ_LLM_MODEL
 
 try:
     from langsmith.wrappers import wrap_openai
@@ -8,15 +8,15 @@ except ImportError:  # pragma: no cover - requirements installs LangSmith in nor
     wrap_openai = None
 
 
-class NVIDIAChatClient:
+class GroqChatClient:
     def __init__(
         self,
-        api_key: str = NVIDIA_API_KEY,
-        base_url: str = NVIDIA_API_BASE_URL,
-        model: str = NVIDIA_LLM_MODEL,
+        api_key: str = GROQ_API_KEY,
+        base_url: str = GROQ_API_BASE_URL,
+        model: str = GROQ_LLM_MODEL,
     ):
         if not api_key:
-            raise ValueError("NVIDIA_API_KEY is missing. Add it to your .env file.")
+            raise ValueError("GROQ_API_KEY is missing. Add it to your .env file.")
 
         client = OpenAI(api_key=api_key, base_url=base_url)
         # LangSmith's OpenAI wrapper creates an LLM trace when LANGSMITH_TRACING=true.
@@ -36,5 +36,9 @@ class NVIDIAChatClient:
         )
         content = response.choices[0].message.content
         if not content:
-            raise RuntimeError("NVIDIA LLM returned an empty response.")
+            raise RuntimeError("Groq LLM returned an empty response.")
         return content.strip()
+
+
+# Backward-compatible alias if any module imports NVIDIAChatClient directly.
+NVIDIAChatClient = GroqChatClient

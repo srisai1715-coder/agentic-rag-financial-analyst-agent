@@ -1,41 +1,73 @@
-from openai import OpenAI
+import os
+import cohere
 
-from app.config import (
-    NVIDIA_API_BASE_URL,
-    NVIDIA_API_KEY,
-    NVIDIA_EMBEDDING_MODEL,
-)
+from app.config import COHERE_API_KEY, COHERE_EMBEDDING_MODEL
 
 
-class NVIDIAEmbeddingClient:
-    """Small wrapper around NVIDIA's OpenAI-compatible embeddings API."""
+class CohereEmbeddingClient:
+    """Wrapper around Cohere's v2 Embed API."""
 
     def __init__(
         self,
-        api_key: str = NVIDIA_API_KEY,
-        base_url: str = NVIDIA_API_BASE_URL,
-        model: str = NVIDIA_EMBEDDING_MODEL,
+        api_key: str = COHERE_API_KEY,
+        model: str = COHERE_EMBEDDING_MODEL,
     ):
-        if not api_key:
+        resolved_key = api_key or os.getenv("COHERE_API_KEY", "")
+        resolved_model = model or os.getenv("COHERE_EMBEDDING_MODEL", "embed-v5.0-fast")
+
+        if not resolved_key:
             raise ValueError(
-                "NVIDIA_API_KEY is missing. Add it to your .env file."
+                "COHERE_API_KEY is missing. Add it to your .env file."
+            )
+        if not resolved_model:
+            raise ValueError(
+                "COHERE_EMBEDDING_MODEL is missing. Add it to your .env file."
             )
 
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url=base_url,
-        )
-        self.model = model
+        self.client = cohere.ClientV2(api_key=resolved_key)
+        self.model = resolved_model
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []
 
-        response = self.client.embeddings.create(
+        inputs = [
+            {
+                "content": [
+                    {"type": "text", "text": text},
+                ]
+            }
+            for text in texts
+        ]
+        response = self.client.embed(
+            inputs=inputs,
             model=self.model,
-            input=texts,
+            input_type="search_document",
+            embedding_types=["float"],
         )
-        return [item.embedding for item in response.data]
+        return list(response.embeddings.float or [])
 
     def embed_query(self, text: str) -> list[float]:
-        return self.embed_documents([text])[0]
+        if not text:
+            return []
+
+        inputs = [
+            {
+                "content": [
+                    {"type": "text", "text": text},
+                ]
+            }
+        ]
+        response = self.client.embed(
+            inputs=inputs,
+            model=self.model,
+            input_type="search_query",
+            embedding_types=["float"],
+        )
+        vectors = list(response.embeddings.float or [])
+        return vectors[0] if vectors else []
+
+
+# Backward-compatible aliases so existing imports continue working.
+EmbeddingClient = CohereEmbeddingClient
+NVIDIAEmbeddingClient = CohereEmbeddingClient

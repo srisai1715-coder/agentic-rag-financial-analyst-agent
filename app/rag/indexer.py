@@ -5,7 +5,8 @@ from pathlib import Path
 from qdrant_client.models import PointStruct
 from app.config import CHUNKS_PATH, QDRANT_COLLECTION
 from app.database.qdrant import ensure_collection, get_qdrant_client
-from app.rag.embeddings import NVIDIAEmbeddingClient
+from app.rag.embeddings import EmbeddingClient
+
 
 def load_chunks(path=CHUNKS_PATH):
     path = Path(path)
@@ -14,15 +15,17 @@ def load_chunks(path=CHUNKS_PATH):
     with path.open("r", encoding="utf-8") as file:
         return [json.loads(line) for line in file if line.strip()]
 
+
 def qdrant_point_id(chunk_id: str) -> str:
     # Qdrant local mode accepts UUID/int IDs, not readable IDs such as page-2-chunk-0.
     return str(uuid.uuid5(uuid.NAMESPACE_URL, chunk_id))
+
 
 def index_chunks(chunks_path=CHUNKS_PATH, batch_size=32):
     chunks = load_chunks(chunks_path)
     if not chunks:
         raise ValueError("No chunks found to index.")
-    embedding_client = NVIDIAEmbeddingClient()
+    embedding_client = EmbeddingClient()
     qdrant = get_qdrant_client()
     ensure_collection(qdrant)
     total = 0
@@ -41,6 +44,7 @@ def index_chunks(chunks_path=CHUNKS_PATH, batch_size=32):
         total += len(points)
         print(f"Indexed {total}/{len(chunks)} chunks")
     return total
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

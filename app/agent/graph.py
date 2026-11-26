@@ -1,9 +1,10 @@
+import os
 from langgraph.graph import END, START, StateGraph
 
 from app.agent.prompts import SYSTEM_PROMPT, build_user_prompt
 from app.agent.state import AgentState
 from app.config import ALPHA_VANTAGE_API_KEY
-from app.llm.client import NVIDIAChatClient
+from app.llm.client import GroqChatClient
 from app.rag.citation import format_citation
 
 
@@ -11,6 +12,20 @@ DIRECT_REVENUE_TARGETED_QUERY = (
     "Microsoft total revenue summary results of operations revenue in millions "
     "2025 2024 2023"
 )
+
+MAX_COMPOSE_EVIDENCE = int(os.getenv("GROQ_MAX_COMPOSE_EVIDENCE", "5"))
+MAX_CHUNK_CHARS = int(os.getenv("GROQ_MAX_CHUNK_CHARS", "1200"))
+
+
+def _bounded_evidence_for_prompt(evidence: list[dict]) -> list[dict]:
+    """Limit chunk count and text length sent to Groq to avoid 413 TPM errors."""
+    bounded: list[dict] = []
+    for item in evidence[:MAX_COMPOSE_EVIDENCE]:
+        text = str(item.get("text", ""))
+        if len(text) > MAX_CHUNK_CHARS:
+            text = text[:MAX_CHUNK_CHARS] + "..."
+        bounded.append({**item, "text": text})
+    return bounded
 
 
 def extract_msft_symbol(question: str) -> str:
@@ -40,7 +55,12 @@ def _is_direct_historical_revenue_question(query: str) -> bool:
         )
     ):
         return False
-    return "fiscal year 2025" in lowered or "fy 2025" in lowered or "fiscal year 2024" in lowered or "fy 2024" in lowered
+    return (
+        "fiscal year 2025" in lowered
+        or "fy 2025" in lowered
+        or "fiscal year 2024" in lowered
+        or "fy 2024" in lowered
+    )
 
 
 def _merge_evidence(primary: list[dict], targeted: list[dict]) -> list[dict]:
@@ -388,17 +408,33 @@ def compose(state: AgentState):
             )
         }
 
+    # Deterministic financial ratios must also be formatted directly.
+    ratio_result = state.get("ratio")
+    if (
+        ratio_result
+        and ratio_result.get("result") is not None
+        and ratio_result.get("operation") == "operating_margin"
+    ):
+        result = float(ratio_result["result"])
+        return {
+            "final_answer": (
+                "Microsoft's operating margin in fiscal year 2025 was "
+                f"**{result:.2f}%** (operating income of $128,528 million "
+                "divided by revenue of $281,724 million)."
+            )
+        }
+
     # Exact historical revenue values are also formatted deterministically.
     exact_revenue_answer = extract_exact_revenue_answer(state)
     if exact_revenue_answer is not None:
         return {"final_answer": exact_revenue_answer}
 
-    client = NVIDIAChatClient()
+    client = GroqChatClient()
     answer = client.generate(
         SYSTEM_PROMPT,
         build_user_prompt(
             state["user_query"],
-            state.get("evidence", []),
+            _bounded_evidence_for_prompt(state.get("evidence", [])),
             state.get("calculation"),
             state.get("ratio"),
             state.get("risk_analysis"),

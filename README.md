@@ -5,12 +5,14 @@ An **Agentic RAG Financial Analyst AI Agent** built with **LangGraph**, **FastAP
 ---
 
 ## 🌐 Live Deployment & Health Check
+## 🔗 Live Links & Demo
 
-* **Frontend (Vercel):** `https://agentic-rag-financial-analyst-agent.vercel.app` (deployed from the `frontend` directory using the Vite preset with `VITE_API_BASE_URL` pointing to the Render backend)
-* **Backend (Render):** `https://agentic-rag-financial-analyst-agent.onrender.com` (deployed as a Web Service on the **Python 3** runtime with build command `pip install -r requirements.txt` and start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`)
-* **Backend Health Check:** `https://agentic-rag-financial-analyst-agent.onrender.com/health` (returns `{"status":"healthy","service":"financial-analyst-agent"}`)
+* **Frontend (Vercel):** https://agentic-rag-financial-analyst-agent.vercel.app
+* **Backend (Render):** https://agentic-rag-financial-analyst-agent.onrender.com
+* **Backend Health Check:** https://agentic-rag-financial-analyst-agent.onrender.com/health
 
 > **Note:** On Render's free instance tier, the backend may spin down after inactivity, so the first request after a pause can take ~30–50 seconds to wake up.
+
 
 ---
 
